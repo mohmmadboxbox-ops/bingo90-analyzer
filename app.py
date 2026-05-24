@@ -7,8 +7,8 @@ import numpy as np
 # 1. إعدادات مظهر شاشة الهاتف وعنوان التطبيق الأساسي
 st.set_page_config(page_title="Bingo 90 Zone Granville", page_icon="🔮", layout="centered")
 
-st.title("🔮 خوارزمية ضربة المعلم - العرض المتتالي الصافي")
-st.write("تمت إزالة الفواصل النصية! عرض البطاقات الستة متتالية بالترتيب من 1 إلى 6 لسهولة النقل السريع.")
+st.title("🔮 خوارزمية ضربة المعلم - النسخة المستقرة")
+st.write("تم إصلاح خطأ السيرفر! عرض البطاقات الستة متتالية بالترتيب من 1 إلى 6 لسهولة النقل السريع.")
 
 # 2. دالة الماسح الضوئي (OCR) المخصصة لقراءة صور الهواتف وتنظيفها
 def extract_numbers_from_uploaded_file(uploaded_file):
@@ -18,7 +18,9 @@ def extract_numbers_from_uploaded_file(uploaded_file):
         
         # معالجة الصورة وتحسين التباين
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        threshold_image = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        
+        # تم إصلاح السطر أدناه ليتوافق مع مكتبة OpenCV في السيرفر بدون أخطاء
+        _, threshold_image = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         
         custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789,'
         extracted_text = pytesseract.image_to_string(threshold_image, config=custom_config)
