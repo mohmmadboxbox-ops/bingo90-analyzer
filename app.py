@@ -7,17 +7,26 @@ import numpy as np
 # 1. إعدادات مظهر شاشة الهاتف وعنوان التطبيق الأساسي
 st.set_page_config(page_title="Bingo 90 Zone Granville", page_icon="🔮", layout="centered")
 
-st.title("🔮 خوارزمية ضربة المعلم - الإصدار البرق")
-st.write("إصدار التشغيل السريع: معالجة فورية فائقة السرعة بدون أي تعليق أو اصفنان للسيرفر!")
+st.title("🔮 خوارزمية ضربة المعلم - النسخة البرق الآمنة")
+st.write("تم حل مشكلة التعليق نهائياً عبر تقنية تقليص الصور الذكية لحماية ذاكرة السيرفر السحابي!")
 
-# 2. دالة الماسح الضوئي الذكية الخفيفة فائقة السرعة
+# 2. دالة الماسح الضوئي الذكية الخفيفة مع ميزة تصغير الحجم لحماية السيرفر
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is not None:
+        # قراءة ملف الصورة
         file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
         image = cv2.imdecode(file_bytes, 1)
+        
+        # 🛠️ السر الحاسم: تصغير أبعاد الصورة لـ 800 بكسل فقط لجعلها خفيفة جداً على السيرفر السحابي ومنع التعليق
+        h, w = image.shape[:2]
+        if w > 800:
+            new_w = 800
+            new_h = int((h / w) * 800)
+            image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+            
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        # فلتر تنظيف حاد ومباشر يقرأ الصورة دفعة واحدة بسرعة فائقة بدون حلقات تكرار ثقيلة
+        # فلتر تنظيف حاد مباشر وسريع جداً
         threshold_image = cv2.adaptiveThreshold(
             gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 51, 2
         )
@@ -28,8 +37,8 @@ def extract_numbers_from_uploaded_file(uploaded_file):
         extracted_set = set()
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
-            # عزل الدوائر الرقمية ومنع تدميج الأرقام المتجاورة كلياً
-            if 15 < w < 130 and 15 < h < 130:
+            # عزل الدوائر الرقمية ومنع التدميج
+            if 10 < w < 100 and 10 < h < 100:
                 roi = gray_image[y:y+h, x:x+w]
                 text = pytesseract.image_to_string(roi, config=custom_config)
                 clean_text = text.strip()
@@ -49,7 +58,7 @@ st.header("📸 خطوة 1: مسح السحبات بالعين الإلكترو�
 img_file_1 = st.file_uploader("ارفع صورة السحبة الأولى:", type=["png", "jpg", "jpeg"], key="draw1")
 img_file_2 = st.file_uploader("ارفع صورة السحبة الثانية:", type=["png", "jpg", "jpeg"], key="draw2")
 
-# جلب الأرقام من الـ OCR الخفيف المستقر
+# جلب الأرقام من الـ OCR الخفيف جداً
 raw_nums_1 = extract_numbers_from_uploaded_file(img_file_1) if img_file_1 else []
 raw_nums_2 = extract_numbers_from_uploaded_file(img_file_2) if img_file_2 else []
 
