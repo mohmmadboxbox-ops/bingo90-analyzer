@@ -7,8 +7,9 @@ import re
 st.set_page_config(page_title="Bingo 90 Zone Granville", page_icon="🔮", layout="centered")
 
 st.title("🔮 خوارزمية ضربة المعلم - العرض المتتالي الصافي")
+st.write("تعمل الخوارزمية بنظام الكتلة الواحدة (بدون انحياز) مع دمج خاصية التجاور لبطاقتين كحد أقصى.")
 
-# تم وضع مفتاحك السري هنا
+# المفتاح السري الخاص بك
 GOOGLE_API_KEY = "AIzaSyDO7s1G7zd-hX_I2hvv3Q3dppPSI2C3UXs"
 
 # 2. دالة الماسح الضوئي المحدثة
@@ -57,11 +58,12 @@ text_input_1 = st.text_area("أرقام السحبة الأولى (راجعها)
 text_input_2 = st.text_area("أرقام السحبة الثانية (راجعها):", value=", ".join(map(str, raw_nums_2)))
 
 # 4. المعالجة
-if st.button("🚀 توليد البطاقات"):
+if st.button("🚀 توليد البطاقات (النظام الموحد المتساوي)"):
     final_draw_1 = [int(s.strip()) for s in re.findall(r'\b\d+\b', text_input_1)]
     final_draw_2 = [int(s.strip()) for s in re.findall(r'\b\d+\b', text_input_2)]
     
     if len(final_draw_1) > 0 and len(final_draw_2) > 0:
+        # حساب المجموعة المستهدفة
         shared_numbers = set(final_draw_1).intersection(set(final_draw_2))
         all_possible = set(range(1, 91))
         hidden_numbers = all_possible.difference(set(final_draw_1).union(set(final_draw_2)))
@@ -76,14 +78,56 @@ if st.button("🚀 توليد البطاقات"):
             
         target = sorted(list(set(final_draw_1).union(set(retained)).union(hidden_numbers)))
         
-        def sort_g(p): return sorted(p, key=lambda x: (x % 2, x > 45, x % 10))
-        
+        # تقسيم النطاقات
         zones = [[n for n in target if 1<=n<=30], [n for n in target if 31<=n<=60], [n for n in target if 61<=n<=90]]
         cards = []
+        cards_with_pairs_count = 0 
+        
         for z in zones:
-            pool = sort_g(z)[:10]
-            cards.append(sorted(pool[0::2]))
-            cards.append(sorted(pool[1::2]))
+            z_sorted = sorted(z)
+            
+            # اختيار 10 أرقام بانتظام وبدون أي تحيز (توزيع عادل على مساحة النطاق)
+            if len(z_sorted) > 10:
+                step = len(z_sorted) / 10.0
+                pool = [z_sorted[int(i * step)] for i in range(10)]
+            else:
+                pool = z_sorted
+                
+            card_a = []
+            card_b = []
+            pairs = []
+            working_pool = []
+            
+            # البحث عن التجاور في الأرقام المختارة العادلة
+            skip = False
+            for i in range(len(pool)):
+                if skip:
+                    skip = False
+                    continue
+                if i < len(pool)-1 and pool[i+1] == pool[i] + 1:
+                    pairs.append((pool[i], pool[i+1]))
+                    skip = True
+                else:
+                    working_pool.append(pool[i])
+            
+            # وضع المتجاورات في بطاقتين كحد أقصى
+            for p in pairs:
+                if cards_with_pairs_count < 2 and len(card_a) <= 3:
+                    card_a.extend(list(p))
+                    cards_with_pairs_count += 1
+                else:
+                    card_a.append(p[0])
+                    card_b.append(p[1])
+                    
+            # توزيع باقي الأرقام
+            for num in working_pool:
+                if len(card_a) < 5:
+                    card_a.append(num)
+                else:
+                    card_b.append(num)
+                    
+            cards.append(sorted(card_a))
+            cards.append(sorted(card_b))
             
         for i, c in enumerate(cards):
             st.info(f"🎴 بطاقة رقم {i+1}")
