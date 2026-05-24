@@ -10,7 +10,6 @@ st.title("🔮 خوارزمية ضربة المعلم - العرض المتتا�
 st.write("تمت إزالة الفواصل النصية! عرض البطاقات الستة متتالية بالترتيب من 1 إلى 6 لسهولة النقل السريع.")
 
 # 💡 ضع المفتاح السري (API Key) الخاص بك هنا بين علامتي الاقتباس
-# (يمكنك استخراجه من صفحة Credentials التي فتحناها سابقاً)
 GOOGLE_API_KEY = "ضع_مفتاح_جوجل_كلاود_هنا"
 
 # 2. دالة الماسح الضوئي الاحترافية باستخدام Google Cloud Vision
@@ -37,6 +36,11 @@ def extract_numbers_from_uploaded_file(uploaded_file):
             response = requests.post(url, json=payload)
             result = response.json()
             
+            # 🔍 فحص إذا كان هناك رفض من جوجل (الخطأ الذي ظهر لك سابقاً)
+            if 'error' in result:
+                st.error(f"🚫 جوجل رفضت الطلب والسبب: {result['error']['message']}")
+                return []
+            
             # استخراج النص المقروء
             extracted_text = result['responses'][0]['fullTextAnnotation']['text']
             
@@ -48,7 +52,7 @@ def extract_numbers_from_uploaded_file(uploaded_file):
             return sorted(list(set(valid_numbers)))
             
         except Exception as e:
-            st.error(f"⚠️ حدث خطأ أثناء قراءة الصورة من سيرفر جوجل: {e}")
+            st.error(f"⚠️ حدث خطأ أثناء معالجة النتيجة: {e}")
             return []
     return []
 
@@ -97,63 +101,4 @@ if st.button("🚀 نخل الصناديق وتوليد بطاقات غرانف�
             }
             
             sorted_boxes_by_count = sorted(boxes.keys(), key=lambda k: len(boxes[k]))
-            retained_boxes_ids = sorted_boxes_by_count[3:]
-            
-            retained_shared_numbers = []
-            for box_id in retained_boxes_ids:
-                retained_shared_numbers.extend(boxes[box_id])
-                
-            target_sample_space = sorted(list(set(final_draw_1).union(set(retained_shared_numbers)).union(hidden_numbers)))
-            
-            # ب. عزل الصندوق وتصنيفه إلى 3 نطاقات جغرافية حادة
-            zone_1_30 = [num for num in target_sample_space if 1 <= num <= 30]
-            zone_31_60 = [num for num in target_sample_space if 31 <= num <= 60]
-            zone_61_90 = [num for num in target_sample_space if 61 <= num <= 90]
-            
-            # دالة مساعدة لترتيب أرقام أي نطاق بناءً على شروط غرانفيل
-            def sort_by_granville(pool):
-                return sorted(pool, key=lambda x: (x % 2, x > 45, x % 10))
-            
-            # ج. فرز واقتطاع البطاقات لكل نطاق بالتناوب
-            g_pool_1 = sort_by_granville(zone_1_30)[:10]
-            card_1 = sorted([g_pool_1[i] for i in range(0, len(g_pool_1), 2)])
-            card_2 = sorted([g_pool_1[i] for i in range(1, len(g_pool_1), 2)])
-            
-            g_pool_2 = sort_by_granville(zone_31_60)[:10]
-            card_3 = sorted([g_pool_2[i] for i in range(0, len(g_pool_2), 2)])
-            card_4 = sorted([g_pool_2[i] for i in range(1, len(g_pool_2), 2)])
-            
-            g_pool_3 = sort_by_granville(zone_61_90)[:10]
-            card_5 = sorted([g_pool_3[i] for i in range(0, len(g_pool_3), 2)])
-            card_6 = sorted([g_pool_3[i] for i in range(1, len(g_pool_3), 2)])
-            
-            # -------------------------------------------------------------
-            # 5. عرض البطاقات الستة متتالية ومباشرة بدون أي فواصل نصية تقطع الترتيب
-            # -------------------------------------------------------------
-            st.success("🏁 تم فرز البيانات وتوليد البطاقات بنجاح!")
-            st.markdown("## 📋 قائمة البطاقات الستة الجاهزة للعب:")
-            
-            st.info("🎴 بطاقة رقم 1 [النطاق 1-30]")
-            st.markdown(f"## ` {card_1} `")
-            
-            st.info("🎴 بطاقة رقم 2 [النطاق 1-30]")
-            st.markdown(f"## ` {card_2} `")
-            
-            st.warning("🎴 بطاقة رقم 3 [النطاق 31-60]")
-            st.markdown(f"## ` {card_3} `")
-            
-            st.warning("🎴 بطاقة رقم 4 [النطاق 31-60]")
-            st.markdown(f"## ` {card_4} `")
-            
-            st.error("🎴 بطاقة رقم 5 [النطاق 61-90]")
-            st.markdown(f"## ` {card_5} `")
-            
-            st.error("🎴 بطاقة رقم 6 [النطاق 61-90]")
-            st.markdown(f"## ` {card_6} `")
-            
-            st.markdown("---")
-            st.subheader("📋 كامل أرقام الصندوق المستهدف للرجوع إليها (82% نجاح كلي):")
-            st.code(" , ".join(map(str, target_sample_space)), language="text")
-            
-    else:
-        st.warning("⚠️ يرجى التأكد من إدخال الأرقام في السحبة الأولى والثانية أولاً.")
+            retained_boxes_ids = sorted_boxes_by
