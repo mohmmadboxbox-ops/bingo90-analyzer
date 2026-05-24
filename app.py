@@ -7,27 +7,42 @@ import numpy as np
 # 1. إعدادات مظهر شاشة الهاتف وعنوان التطبيق الأساسي
 st.set_page_config(page_title="Bingo 90 Zone Granville", page_icon="🔮", layout="centered")
 
-st.title("🔮 خوارزمية ضربة المعلم - النسخة المستقرة")
-st.write("تم إصلاح خطأ السيرفر! عرض البطاقات الستة متتالية بالترتيب من 1 إلى 6 لسهولة النقل السريع.")
+st.title("🔮 خوارزمية ضربة المعلم - الفلترة الصارمة")
+st.write("تم إحكام المعادلة! مسح كامل أرقام الصورة الثانية باستثناء المكررات الساخنة المعتمدة.")
 
-# 2. دالة الماسح الضوئي (OCR) المخصصة لقراءة صور الهواتف وتنظيفها
+# 2. دالة الماسح الضوئي الذكية المحدثة لحصر الـ 50 رقماً بالكامل
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is not None:
         file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
         image = cv2.imdecode(file_bytes, 1)
-        
-        # معالجة الصورة وتحسين التباين
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        # تم إصلاح السطر أدناه ليتوافق مع مكتبة OpenCV في السيرفر بدون أخطاء
-        _, threshold_image = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        extracted_set = set()
         
-        custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789,'
-        extracted_text = pytesseract.image_to_string(threshold_image, config=custom_config)
-        
-        # استخراج الأرقام كقائمة مرتبة وفريدة
-        numbers = [int(s) for s in re.findall(r'\b\d+\b', extracted_text)]
-        return sorted(list(set(numbers)))
+        # محاكاة ديناميكية لعزل الدوائر ومنع التدميج
+        for block_size in [11, 15, 19, 23, 27]:
+            threshold_image = cv2.adaptiveThreshold(
+                gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, block_size, 2
+            )
+            
+            contours, _ = cv2.findContours(threshold_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            custom_config = r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
+            
+            for cnt in contours:
+                x, y, w, h = cv2.boundingRect(cnt)
+                if 12 < w < 120 and 12 < h < 120:
+                    roi = gray_image[y:y+h, x:x+w]
+                    text = pytesseract.image_to_string(roi, config=custom_config)
+                    clean_text = text.strip()
+                    if clean_text.isdigit():
+                        num = int(clean_text)
+                        if 1 <= num <= 90:
+                            extracted_set.add(num)
+            
+            if len(extracted_set) >= 50:
+                break
+                
+        return sorted(list(extracted_set))
     return []
 
 # -------------------------------------------------------------
@@ -38,33 +53,33 @@ st.header("📸 خطوة 1: مسح السحبات بالعين الإلكترو�
 img_file_1 = st.file_uploader("ارفع صورة السحبة الأولى:", type=["png", "jpg", "jpeg"], key="draw1")
 img_file_2 = st.file_uploader("ارفع صورة السحبة الثانية:", type=["png", "jpg", "jpeg"], key="draw2")
 
-# جلب الأرقام المبدئية من الـ OCR
+# جلب الأرقام من الـ OCR
 raw_nums_1 = extract_numbers_from_uploaded_file(img_file_1) if img_file_1 else []
 raw_nums_2 = extract_numbers_from_uploaded_file(img_file_2) if img_file_2 else []
 
 st.markdown("---")
-st.header("✍️ خطوة 2: مراجعة وتعديل البيانات (حماية ضد خطأ الماسح)")
-st.caption("إذا كانت هناك أرقام خاطئة أو مفقودة من القراءة الآلية، قم بتعديلها في المربعات أدناه يفصل بينها فاصلة ( , )")
+st.header("✍️ خطوة 2: مراجعة وتعديل البيانات (تأكيد الـ 50 رقماً)")
 
-# تحويل القوائم إلى نصوص يفصل بينها فاصلة ليسهل على المستخدم تعديلها يدوياً
-text_input_1 = st.text_area("أرقام السحبة الأولى المستخرجة (راجعها وعدلها):", value=", ".join(map(str, raw_nums_1)))
-text_input_2 = st.text_area("أرقام السحبة الثانية المستخرجة (راجعها وعدلها):", value=", ".join(map(str, raw_nums_2)))
+text_input_1 = st.text_area(f"أرقام السحبة الأولى [تم قراءة {len(raw_nums_1)} من 50]:", value=", ".join(map(str, raw_nums_1)))
+text_input_2 = st.text_area(f"أرقام السحبة الثانية [تم قراءة {len(raw_nums_2)} من 50]:", value=", ".join(map(str, raw_nums_2)))
 
-# 4. زر التشغيل الرئيسي والمعالجة الحسابية المعتمدة
+# 4. زر التشغيل الرئيسي والمعالجة الحسابية المحكمة
 if st.button("🚀 نخل الصناديق وتوليد بطاقات غرانفيل النطاقية"):
-    # تحويل النصوص المعدلة يدوياً إلى قوائم أرقام حقيقية للحسابات
     final_draw_1 = [int(s.strip()) for s in re.findall(r'\b\d+\b', text_input_1)]
     final_draw_2 = [int(s.strip()) for s in re.findall(r'\b\d+\b', text_input_2)]
     
     if len(final_draw_1) > 0 and len(final_draw_2) > 0:
-        with st.spinner("جاري نخل الصندوق وتطبيق التقسيم الجغرافي النهائي لغرانفيل..."):
+        with st.spinner("جاري تطبيق التصفية الصارمة وتوليد البطاقات..."):
             
-            # أ. حساب الصندوق المستهدف الشامل (المعادلة الثابتة المستقرة 82% نجاح كلي)
+            # أ. استخراج المكررات المشتركة فقط بين الصورتين
             shared_numbers = set(final_draw_1).intersection(set(final_draw_2))
+            
+            # ب. حساب الأرقام المخفية كلياً (التي لم تظهر نهائياً في الصورتين 1 و 2)
             all_possible_numbers = set(range(1, 91))
             appeared_so_far = set(final_draw_1).union(set(final_draw_2))
             hidden_numbers = all_possible_numbers.difference(appeared_so_far)
             
+            # ج. توزيع المكررات على الصناديق الستة ونخلها جغرافياً
             boxes = {
                 1: [num for num in shared_numbers if 1 <= num <= 15],
                 2: [num for num in shared_numbers if 16 <= num <= 30],
@@ -75,43 +90,41 @@ if st.button("🚀 نخل الصناديق وتوليد بطاقات غرانف�
             }
             
             sorted_boxes_by_count = sorted(boxes.keys(), key=lambda k: len(boxes[k]))
-            retained_boxes_ids = sorted_boxes_by_count[3:]
+            retained_boxes_ids = sorted_boxes_by_count[3:]  # الاحتفاظ بأعلى 3 صناديق فقط
             
             retained_shared_numbers = []
             for box_id in retained_boxes_ids:
                 retained_shared_numbers.extend(boxes[box_id])
                 
+            # د. المعادلة المحكمة الصافية: (كامل الصورة 1) + (المشتركات الساخنة فقط) + (المخفية)
+            # تم استبعاد باقي أرقام الصورة الثانية تماماً بناءً على طلبك
             target_sample_space = sorted(list(set(final_draw_1).union(set(retained_shared_numbers)).union(hidden_numbers)))
             
-            # ب. عزل الصندوق وتصنيفه إلى 3 نطاقات جغرافية حادة
+            # هـ. عزل الصندوق وتصنيفه إلى 3 نطاقات جغرافية حادة
             zone_1_30 = [num for num in target_sample_space if 1 <= num <= 30]
             zone_31_60 = [num for num in target_sample_space if 31 <= num <= 60]
             zone_61_90 = [num for num in target_sample_space if 61 <= num <= 90]
             
-            # دالة مساعدة لترتيب أرقام أي نطاق بناءً على شروط غرانفيل
             def sort_by_granville(pool):
                 return sorted(pool, key=lambda x: (x % 2, x > 45, x % 10))
             
-            # ج. فرز واقتطاع البطاقات لكل نطاق بالتناوب
-            # نطاق (1-30) للبطاقات 1 و 2
+            # و. فرز واقتطاع البطاقات لكل نطاق بالتناوب بنظام غرانفيل
             g_pool_1 = sort_by_granville(zone_1_30)[:10]
             card_1 = sorted([g_pool_1[i] for i in range(0, len(g_pool_1), 2)])
             card_2 = sorted([g_pool_1[i] for i in range(1, len(g_pool_1), 2)])
             
-            # نطاق (31-60) للبطاقات 3 و 4
             g_pool_2 = sort_by_granville(zone_31_60)[:10]
             card_3 = sorted([g_pool_2[i] for i in range(0, len(g_pool_2), 2)])
             card_4 = sorted([g_pool_2[i] for i in range(1, len(g_pool_2), 2)])
             
-            # نطاق (61-90) للبطاقات 5 و 6
             g_pool_3 = sort_by_granville(zone_61_90)[:10]
             card_5 = sorted([g_pool_3[i] for i in range(0, len(g_pool_3), 2)])
             card_6 = sorted([g_pool_3[i] for i in range(1, len(g_pool_3), 2)])
             
             # -------------------------------------------------------------
-            # 5. عرض البطاقات الستة متتالية ومباشرة بدون أي فواصل نصية تقطع الترتيب
+            # 5. العرض العمودي المتتالي الصافي (واحدة تلو الأخرى)
             # -------------------------------------------------------------
-            st.success("🏁 تم فرز البيانات وتوليد البطاقات بنجاح!")
+            st.success("🏁 تم الفرز وفقاً لقاعدة الحظر الصارم وتوليد البطاقات!")
             st.markdown("## 📋 قائمة البطاقات الستة الجاهزة للعب:")
             
             st.info("🎴 بطاقة رقم 1 [النطاق 1-30]")
@@ -133,7 +146,7 @@ if st.button("🚀 نخل الصناديق وتوليد بطاقات غرانف�
             st.markdown(f"## ` {card_6} `")
             
             st.markdown("---")
-            st.subheader("📋 كامل أرقام الصندوق المستهدف للرجوع إليها (82% نجاح كلي):")
+            st.subheader("📋 كامل أرقام الصندوق المستهدف للرجوع إليها:")
             st.code(" , ".join(map(str, target_sample_space)), language="text")
             
     else:
