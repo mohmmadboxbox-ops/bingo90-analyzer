@@ -9,8 +9,8 @@ st.set_page_config(page_title="Bingo 90 Zone Granville", page_icon="🔮", layou
 st.title("🔮 خوارزمية ضربة المعلم - العرض المتتالي الصافي")
 st.write("تعمل الخوارزمية بنظام الكتلة الواحدة (بدون انحياز) مع دمج خاصية التجاور لبطاقتين كحد أقصى.")
 
-# المفتاح السري الخاص بك
-GOOGLE_API_KEY = "AIzaSyDO7s1G7zd-hX_I2hvv3Q3dppPSI2C3UXs"
+# جلب المفتاح السري بأمان من إعدادات Streamlit وحمايته من الروبوتات
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 
 # 2. دالة الماسح الضوئي المحدثة
 def extract_numbers_from_uploaded_file(uploaded_file):
