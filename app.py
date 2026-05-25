@@ -9,7 +9,7 @@ st.set_page_config(page_title="Bingo 90 Zone Granville", page_icon="🔮", layou
 st.title("🔮 خوارزمية ضربة المعلم - العرض المتتالي الصافي")
 st.write("تعمل الخوارزمية بنظام الكتلة الواحدة (بدون انحياز) مع دمج خاصية التجاور لبطاقتين كحد أقصى.")
 
-# جلب المفتاح السري بأمان من إعدادات Streamlit وحمايته من الروبوتات
+# جلب المفتاح السري بأمان من إعدادات Streamlit
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 
 # 2. دالة الماسح الضوئي المحدثة
@@ -45,17 +45,40 @@ def extract_numbers_from_uploaded_file(uploaded_file):
             return []
     return []
 
-# 3. واجهة المستخدم
+# 3. واجهة المستخدم والتنبيهات الذكية
 st.header("📸 خطوة 1: مسح السحبات")
-img_file_1 = st.file_uploader("ارفع صورة السحبة الأولى:", type=["png", "jpg", "jpeg"], key="draw1")
-img_file_2 = st.file_uploader("ارفع صورة السحبة الثانية:", type=["png", "jpg", "jpeg"], key="draw2")
 
+img_file_1 = st.file_uploader("ارفع صورة السحبة الأولى:", type=["png", "jpg", "jpeg"], key="draw1")
 raw_nums_1 = extract_numbers_from_uploaded_file(img_file_1) if img_file_1 else []
-raw_nums_2 = extract_numbers_from_uploaded_file(img_file_2) if img_file_2 else []
+
+# فحص السحبة الأولى
+if img_file_1:
+    text_input_1 = st.text_area("أرقام السحبة الأولى (راجعها):", value=", ".join(map(str, raw_nums_1)))
+    current_nums_1 = [int(s.strip()) for s in re.findall(r'\b\d+\b', text_input_1)]
+    if len(current_nums_1) == 50:
+        st.success(f"✅ قراءة مكتملة: تم رصد {len(current_nums_1)} رقماً.")
+    else:
+        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_1)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً في المربع أعلاه.")
+else:
+    text_input_1 = ""
 
 st.markdown("---")
-text_input_1 = st.text_area("أرقام السحبة الأولى (راجعها):", value=", ".join(map(str, raw_nums_1)))
-text_input_2 = st.text_area("أرقام السحبة الثانية (راجعها):", value=", ".join(map(str, raw_nums_2)))
+
+img_file_2 = st.file_uploader("ارفع صورة السحبة الثانية:", type=["png", "jpg", "jpeg"], key="draw2")
+raw_nums_2 = extract_numbers_from_uploaded_file(img_file_2) if img_file_2 else []
+
+# فحص السحبة الثانية
+if img_file_2:
+    text_input_2 = st.text_area("أرقام السحبة الثانية (راجعها):", value=", ".join(map(str, raw_nums_2)))
+    current_nums_2 = [int(s.strip()) for s in re.findall(r'\b\d+\b', text_input_2)]
+    if len(current_nums_2) == 50:
+        st.success(f"✅ قراءة مكتملة: تم رصد {len(current_nums_2)} رقماً.")
+    else:
+        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_2)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً في المربع أعلاه.")
+else:
+    text_input_2 = ""
+
+st.markdown("---")
 
 # 4. المعالجة
 if st.button("🚀 توليد البطاقات (النظام الموحد المتساوي)"):
@@ -126,20 +149,17 @@ if st.button("🚀 توليد البطاقات (النظام الموحد الم
         
         for num in working_pool:
             start_idx = card_idx
-            # البحث عن البطاقة التالية التي لم تمتلئ (تحتوي على أقل من 5 أرقام)
             while len(cards[card_idx]) >= 5:
                 card_idx = (card_idx + 1) % 6
                 if card_idx == start_idx:
-                    break # اكتملت جميع البطاقات
+                    break 
                     
             if len(cards[card_idx]) < 5:
                 cards[card_idx].append(num)
                 card_idx = (card_idx + 1) % 6
                 
-        # ترتيب الأرقام داخل كل بطاقة للعرض النهائي
         cards = [sorted(c) for c in cards]
         
-        # عرض البطاقات
         for i, c in enumerate(cards):
             st.info(f"🎴 بطاقة رقم {i+1}")
             st.markdown(f"## ` {c} `")
