@@ -6,9 +6,8 @@ import random
 
 # إعدادات الصفحة
 st.set_page_config(page_title="Genius 2 Pro", layout="centered")
-st.title("🎯 Genius 2: القارئ الذكي")
 
-# 1. دالة القراءة الأصلية
+# --- دالة القراءة الأصلية (كما كانت تشتغل عندك سابقاً) ---
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is None: return []
     try:
@@ -18,12 +17,14 @@ def extract_numbers_from_uploaded_file(uploaded_file):
         payload = {"requests": [{"image": {"content": encoded_image}, "features": [{"type": "DOCUMENT_TEXT_DETECTION"}]}]}
         response = requests.post(url, json=payload)
         result = response.json()
+        
+        # القراءة الأصلية التي كنت تعتمد عليها
         text = result['responses'][0]['fullTextAnnotation']['text']
         nums = [int(n) for n in re.findall(r'\b\d+\b', text) if 1 <= int(n) <= 90]
         return sorted(list(set(nums)))
     except: return []
 
-# 2. دالة التنبيه المباشر (الأخضر للمكتمل، الأصفر للنقص)
+# --- دالة التنبيه (الخاصية التي طلبتها) ---
 def display_input_box(label, img_file, key):
     raw_nums = extract_numbers_from_uploaded_file(img_file) if img_file else []
     text_input = st.text_area(f"أرقام {label}:", value=",".join(map(str, raw_nums)), key=f"text_{key}")
@@ -36,7 +37,7 @@ def display_input_box(label, img_file, key):
         st.warning(f"⚠️ انتبه: تم رصد {count} رقماً فقط! المطلوب 50. يرجى التعديل يدوياً حتى يكتمل العدد.")
     return nums
 
-# 3. محرك الأكواد الستة
+# --- محرك الأكواد الستة (بدون مساس بالقراءة) ---
 def generate_cards_with_engines(target_pool):
     cards = [[] for _ in range(6)]
     global_counter = {num: 0 for num in range(1, 91)}
@@ -55,7 +56,7 @@ def generate_cards_with_engines(target_pool):
                 global_counter[n] += 1
     return cards
 
-# --- تنفيذ الواجهة ---
+# --- الواجهة ---
 img1 = st.file_uploader("ارفع صورة السحبة الأولى:", type=["png", "jpg"], key="d1")
 d1_list = display_input_box("السحبة الأولى", img1, "d1")
 
@@ -67,6 +68,6 @@ if st.button("🚀 توليد البطاقات الستة"):
         target = sorted(list(set(d1_list).union(set(d2_list))))
         final_cards = generate_cards_with_engines(target)
         for i, c in enumerate(final_cards):
-            st.info(f"بطاقة رقم {i+1}: {sorted(c)}")
+            st.info(f"البطاقة {i+1}: {sorted(c)}")
     else:
         st.error("❌ لا يمكن التوليد، السحبات غير مكتملة!")
