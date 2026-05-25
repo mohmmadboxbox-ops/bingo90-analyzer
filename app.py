@@ -58,7 +58,7 @@ if img_file_1:
     if len(current_nums_1) == 50:
         st.success(f"✅ قراءة مكتملة: تم رصد {len(current_nums_1)} رقماً.")
     else:
-        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_1)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً.")
+        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_1)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً في المربع أعلاه.")
 else:
     text_input_1 = ""
 
@@ -73,19 +73,19 @@ if img_file_2:
     if len(current_nums_2) == 50:
         st.success(f"✅ قراءة مكتملة: تم رصد {len(current_nums_2)} رقماً.")
     else:
-        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_2)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً.")
+        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_2)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً في المربع أعلاه.")
 else:
     text_input_2 = ""
 
 st.markdown("---")
 
-# 4. المعالجة الذكية (تم تغيير استراتيجية البطاقات فقط)
+# 4. المعالجة الذكية 
 if st.button("🚀 توليد البطاقات الهجينة"):
     d1 = [int(n) for n in re.findall(r'\b\d+\b', text_input_1)]
     d2 = [int(n) for n in re.findall(r'\b\d+\b', text_input_2)]
     
     if len(d1) > 0 and len(d2) > 0:
-        # حساب المجموعة المستهدفة (كما هي في كودك الأصلي)
+        # حساب المجموعة المستهدفة 
         shared_numbers = set(d1).intersection(set(d2))
         all_possible = set(range(1, 91))
         hidden_numbers = all_possible.difference(set(d1).union(set(d2)))
@@ -105,17 +105,14 @@ if st.button("🚀 توليد البطاقات الهجينة"):
         # ==========================================
         cards = [[] for _ in range(6)]
         global_counter = {num: 0 for num in range(1, 91)}
-        cards_with_dupes = set() # تتبع البطاقات التي تحتوي على مكررات (الحد الأقصى 4)
+        cards_with_dupes = set() 
 
         def can_add(num, card_idx):
-            # 1. منع تكرار الرقم أكثر من مرتين إجمالاً
             if global_counter[num] >= 2:
                 return False
-            # 2. إذا كان الرقم سيتكرر للمرة الثانية، نتحقق من شرط الـ 4 بطاقات
             if global_counter[num] == 1:
                 other_card_idx = next(i for i, c in enumerate(cards) if num in c)
                 potential_dupe_cards = cards_with_dupes.union({card_idx, other_card_idx})
-                # إذا كانت إضافة هذا الرقم ستجعل أكثر من 4 بطاقات تحتوي على مكررات، ارفضه
                 if len(potential_dupe_cards) > 4:
                     return False
             return True
@@ -128,7 +125,6 @@ if st.button("🚀 توليد البطاقات الهجينة"):
             cards[card_idx].append(num)
             global_counter[num] += 1
 
-        # دوال مساعدة لجلب الأرقام بناءً على الكود (مع النسخ الاحتياطي إذا كانت الفئة فارغة)
         def get_pool(condition):
             pool = [n for n in target if condition(n)]
             return pool if pool else target.copy()
@@ -140,3 +136,33 @@ if st.button("🚀 توليد البطاقات الهجينة"):
             ("❄️ الصقيع (Frost)", get_pool(lambda x: x < 20)),
             ("🧊 التطويق (Lockdown)", get_pool(lambda x: 20 <= x <= 40)),
             ("🚀 الموجة الصاعدة (Wave)", get_pool(lambda x: 40 < x <= 45)),
+            ("🔗 السحّاب (Zipper)", target.copy())
+        ]
+
+        # توزيع الأرقام 
+        for i, (name, pool) in enumerate(engines):
+            random.shuffle(pool)
+            for num in pool:
+                if len(cards[i]) == 5: break
+                if num not in cards[i] and can_add(num, i):
+                    execute_add(num, i)
+            
+            if len(cards[i]) < 5:
+                backup_pool = target.copy()
+                random.shuffle(backup_pool)
+                for num in backup_pool:
+                    if len(cards[i]) == 5: break
+                    if num not in cards[i] and can_add(num, i):
+                        execute_add(num, i)
+
+        # عرض البطاقات
+        for i, c in enumerate(cards):
+            final_c = sorted(c)
+            st.info(f"كود {i+1}: {engines[i][0]}")
+            st.markdown(f"## ` {final_c} `")
+            
+        st.markdown("---")
+        st.write("🎯 **المجموعة المستهدفة الكلية:**")
+        st.code(" , ".join(map(str, target)))
+    else:
+        st.warning("⚠️ أدخل الأرقام أولاً.")
