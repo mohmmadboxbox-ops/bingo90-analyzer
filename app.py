@@ -78,61 +78,74 @@ if st.button("🚀 توليد البطاقات (النظام الموحد الم
             
         target = sorted(list(set(final_draw_1).union(set(retained)).union(hidden_numbers)))
         
-        # تقسيم النطاقات
+        # تقسيم النطاقات واختيار الأرقام بشكل متساوٍ لدمجها في مسبح رئيسي (Master Pool)
         zones = [[n for n in target if 1<=n<=30], [n for n in target if 31<=n<=60], [n for n in target if 61<=n<=90]]
-        cards = []
-        cards_with_pairs_count = 0 
+        master_pool = []
         
         for z in zones:
             z_sorted = sorted(z)
-            
-            # اختيار 10 أرقام بانتظام وبدون أي تحيز (توزيع عادل على مساحة النطاق)
             if len(z_sorted) > 10:
                 step = len(z_sorted) / 10.0
                 pool = [z_sorted[int(i * step)] for i in range(10)]
             else:
                 pool = z_sorted
+            master_pool.extend(pool)
+            
+        # معالجة التجاور على مستوى المجموعة ككل
+        pairs = []
+        working_pool = []
+        skip = False
+        master_pool = sorted(master_pool)
+        
+        for i in range(len(master_pool)):
+            if skip:
+                skip = False
+                continue
+            if i < len(master_pool)-1 and master_pool[i+1] == master_pool[i] + 1:
+                pairs.append((master_pool[i], master_pool[i+1]))
+                skip = True
+            else:
+                working_pool.append(master_pool[i])
                 
-            card_a = []
-            card_b = []
-            pairs = []
-            working_pool = []
-            
-            # البحث عن التجاور في الأرقام المختارة العادلة
-            skip = False
-            for i in range(len(pool)):
-                if skip:
-                    skip = False
-                    continue
-                if i < len(pool)-1 and pool[i+1] == pool[i] + 1:
-                    pairs.append((pool[i], pool[i+1]))
-                    skip = True
-                else:
-                    working_pool.append(pool[i])
-            
-            # وضع المتجاورات في بطاقتين كحد أقصى
-            for p in pairs:
-                if cards_with_pairs_count < 2 and len(card_a) <= 3:
-                    card_a.extend(list(p))
-                    cards_with_pairs_count += 1
-                else:
-                    card_a.append(p[0])
-                    card_b.append(p[1])
+        # تجهيز 6 بطاقات فارغة
+        cards = [[] for _ in range(6)]
+        
+        # 1. وضع المتجاورات في بطاقتين كحد أقصى
+        cards_with_pairs_count = 0
+        for p in pairs:
+            if cards_with_pairs_count < 2:
+                cards[cards_with_pairs_count].extend(list(p))
+                cards_with_pairs_count += 1
+            else:
+                # إذا زادت المتجاورات عن بطاقتين، تُفكك وتعود لوعاء التوزيع العادي
+                working_pool.extend(list(p))
+                
+        # 2. التوزيع الدائري (Round-Robin) لضمان التنوع العادل والمنتظم
+        working_pool = sorted(working_pool) 
+        card_idx = 0
+        
+        for num in working_pool:
+            start_idx = card_idx
+            # البحث عن البطاقة التالية التي لم تمتلئ (تحتوي على أقل من 5 أرقام)
+            while len(cards[card_idx]) >= 5:
+                card_idx = (card_idx + 1) % 6
+                if card_idx == start_idx:
+                    break # اكتملت جميع البطاقات
                     
-            # توزيع باقي الأرقام
-            for num in working_pool:
-                if len(card_a) < 5:
-                    card_a.append(num)
-                else:
-                    card_b.append(num)
-                    
-            cards.append(sorted(card_a))
-            cards.append(sorted(card_b))
-            
+            if len(cards[card_idx]) < 5:
+                cards[card_idx].append(num)
+                card_idx = (card_idx + 1) % 6
+                
+        # ترتيب الأرقام داخل كل بطاقة للعرض النهائي
+        cards = [sorted(c) for c in cards]
+        
+        # عرض البطاقات
         for i, c in enumerate(cards):
             st.info(f"🎴 بطاقة رقم {i+1}")
             st.markdown(f"## ` {c} `")
             
+        st.markdown("---")
+        st.write("🎯 **المجموعة المستهدفة الكلية:**")
         st.code(" , ".join(map(str, target)))
     else:
         st.warning("⚠️ أدخل الأرقام أولاً.")
