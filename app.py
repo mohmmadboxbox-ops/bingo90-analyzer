@@ -15,13 +15,16 @@ GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "")
 if not GOOGLE_API_KEY:
     st.error("🔑 خطأ أمني: لم يتم العثور على GOOGLE_API_KEY في إعدادات Secrets الخاصة بـ Streamlit!")
 
-# 2. دالة الماسح الضوئي الذكي (Google Vision API) مع فلترة النطاق [1-90]
+# 2. دالة الماسح الضوئي الذكي المصححة والمحمية من أخطاء الاتصال
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is not None and GOOGLE_API_KEY:
         try:
             bytes_data = uploaded_file.getvalue()
             encoded_image = base64.b64encode(bytes_data).decode('utf-8')
-            url = f"https://googleapis.com{GOOGLE_API_KEY}"
+            
+            # قمنا بفصل الرابط عن المفتاح السري هنا تماماً لحل مشكلة الصورة والاتصال بخطوة واحدة
+            url = "https://googleapis.com"
+            params = {"key": GOOGLE_API_KEY}
             
             payload = {
                 "requests": [{
@@ -30,14 +33,14 @@ def extract_numbers_from_uploaded_file(uploaded_file):
                 }]
             }
             
-            response = requests.post(url, json=payload)
+            response = requests.post(url, params=params, json=payload)
             result = response.json()
             
             if 'error' in result:
                 st.error(f"🚫 خطأ واجهة جوجل: {result['error']['message']}")
                 return []
             
-            if 'responses' in result and result['responses'] and 'fullTextAnnotation' in result['responses']:
+            if 'responses' in result and result['responses'] and 'fullTextAnnotation' in result['responses'][0]:
                 extracted_text = result['responses'][0]['fullTextAnnotation']['text']
                 all_numbers = re.findall(r'\b\d+\b', extracted_text)
                 valid_numbers = [int(num) for num in all_numbers if 1 <= int(num) <= 90]
@@ -132,7 +135,6 @@ if st.button("🚀 تشغيل الخوارزمية وتوليد البطاقات
             
         # د. هندسة الوعاء الكلي (Target Pool) وفقاً لقاعدتك الاستراتيجية المكتسحة:
         # (الغائب بالكامل يدخل) + (الثانية النقية الطازجة تدخل بالكامل) + (المشترك المختار يدخل) 
-        # (والأولى النقية تحظر تماماً وتطرد خارج الحسابات ❌)
         target = sorted(list(hidden_numbers.union(purified_draw_2).union(allowed_shared_numbers)))
         
         # هـ. تقسيم الوعاء الكلي إلى 3 مناطق متساوية واختيار الأرقام بشكل متناسق (Master Pool)
@@ -156,7 +158,6 @@ if st.button("🚀 تشغيل الخوارزمية وتوليد البطاقات
         
         for num in working_pool:
             start_idx = card_idx
-            # حلقة حماية البطاقات لمنع الحلقات اللانهائية وتجمد السيرفر
             while len(cards[card_idx]) >= 5:
                 card_idx = (card_idx + 1) % 6
                 if card_idx == start_idx:
@@ -171,7 +172,6 @@ if st.button("🚀 تشغيل الخوارزمية وتوليد البطاقات
         # ز. عرض النتائج والمخرجات على الواجهة بشكل كتل منسقة ومنظمة
         st.success(f"🎯 تم توليد البطاقات وتطهير الوعاء بنجاح! عدد أرقام الوعاء المستهدف: {len(target)} رقماً.")
         
-        # عرض المجموعات الإحصائية لتسهيل المراقبة والتدقيق الفوري
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric(label="📊 الغائب المار للوعاء", value=f"{len(hidden_numbers)} رقم")
@@ -182,7 +182,6 @@ if st.button("🚀 تشغيل الخوارزمية وتوليد البطاقات
             
         st.markdown("---")
         
-        # عرض كتل البطاقات الستة الكبيرة المريحة للعين
         for i, c in enumerate(cards):
             if c:
                 st.info(f"🎴 بطاقة رقم {i+1}")
