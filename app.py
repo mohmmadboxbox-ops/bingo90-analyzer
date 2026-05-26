@@ -3,29 +3,28 @@ import base64
 import requests
 import re
 
-# إصدار الكود: v3.0 (تحديث إجباري للسيرفر لتخطي الحفظ المؤقت)
+# 1. إعدادات المظهر الفني لواجهة التطبيق
 st.set_page_config(page_title="Bingo 90 Zone Granville", page_icon="🔮", layout="centered")
 
 st.title("🔮 خوارزمية ضربة المعلم - إصدار الاستراتيجية المكتسحة")
 st.write("النظام العشري (9 صناديق) | تمرير أعلى 4 صناديق مكررة | اعتماد الثانية النقية وحظر الأولى النقية.")
 
-# جلب وتنظيف المفتاح السري برمجياً لمنع تداخل الرابط المخرب المكتوب في الـ Secrets
+# جلب وتنظيف المفتاح السري برمجياً لضمان توافق الاتصال
 raw_key = st.secrets.get("GOOGLE_API_KEY", "")
-# هذه الدالة تستخرج الحروف والأرقام الصحيحة للمفتاح فقط وتحذف أي روابط زائدة مدمجة به بالخطأ
 GOOGLE_API_KEY = "".join(re.findall(r'[a-zA-Z0-9_\-]+', raw_key))
 
 if not GOOGLE_API_KEY:
     st.error("🔑 خطأ أمني: لم يتم العثور على GOOGLE_API_KEY في إعدادات Secrets الخاصة بـ Streamlit!")
 
-# 2. دالة الماسح الضوئي الذكي المصفاة والمحمية بالكامل
+# 2. دالة الماسح الضوئي الذكي (بروتوكول الاتصال القياسي المطور)
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is not None and GOOGLE_API_KEY:
         try:
             bytes_data = uploaded_file.getvalue()
             encoded_image = base64.b64encode(bytes_data).decode('utf-8')
             
-            # رابط صافي ومستقل تماماً ومحمي من أي دمج نصوص خاطئ
-            url = "https://googleapis.com"
+            # بروتوكول الاتصال القياسي المباشر لـ Google Cloud Vision
+            url = f"https://googleapis.com{GOOGLE_API_KEY}"
             
             payload = {
                 "requests": [{
@@ -34,27 +33,18 @@ def extract_numbers_from_uploaded_file(uploaded_file):
                 }]
             }
             
-            headers = {"Content-Type": "application/json"}
-            # إرسال المفتاح كعامل تصفية معزول تماماً لتجنب الـ NameResolutionError
-            response = requests.post(url, json=payload, headers=headers, params={"key": GOOGLE_API_KEY}, timeout=10)
+            response = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15)
             
-            if response.status_code != 200:
-                st.warning("⚠️ تنبيه: يرجى إدخال الأرقام يدوياً في المربع أدناه (أو تأكد من تفعيل خدمة Cloud Vision في حساب جوجل).")
-                return []
-                
-            result = response.json()
+            if response.status_code == 200:
+                result = response.json()
+                if 'responses' in result and result['responses'] and 'fullTextAnnotation' in result['responses']:
+                    extracted_text = result['responses'][0]['fullTextAnnotation']['text']
+                    all_numbers = re.findall(r'\b\d+\b', extracted_text)
+                    valid_numbers = [int(num) for num in all_numbers if 1 <= int(num) <= 90]
+                    return sorted(list(set(valid_numbers)))
             
-            if 'responses' in result and result['responses'] and 'fullTextAnnotation' in result['responses']:
-                extracted_text = result['responses'][0]['fullTextAnnotation']['text']
-                all_numbers = re.findall(r'\b\d+\b', extracted_text)
-                valid_numbers = [int(num) for num in all_numbers if 1 <= int(num) <= 90]
-                return sorted(list(set(valid_numbers)))
-            else:
-                return []
-            
+            return []
         except Exception:
-            # عند حدوث أي مشكلة في الاتصال، تظهر الرسالة الهادئة ويتيح الإدخال اليدوي فوراً دون تجميد الصفحة
-            st.info("💡 يمكنك الآن نسخ ولصق الأرقام الـ 50 يدوياً في الصندوق أدناه لبدء حساب الخوارزمية مباشرة.")
             return []
     return []
 
