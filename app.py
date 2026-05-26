@@ -15,14 +15,13 @@ GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "")
 if not GOOGLE_API_KEY:
     st.error("🔑 خطأ أمني: لم يتم العثور على GOOGLE_API_KEY في إعدادات Secrets الخاصة بـ Streamlit!")
 
-# 2. دالة الماسح الضوئي الذكي المصححة والمحمية من أخطاء الاتصال
+# 2. دالة الماسح الضوئي الذكي المحمية بالكامل من أخطاء الـ JSON والاتصال
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is not None and GOOGLE_API_KEY:
         try:
             bytes_data = uploaded_file.getvalue()
             encoded_image = base64.b64encode(bytes_data).decode('utf-8')
             
-            # قمنا بفصل الرابط عن المفتاح السري هنا تماماً لحل مشكلة الصورة والاتصال بخطوة واحدة
             url = "https://googleapis.com"
             params = {"key": GOOGLE_API_KEY}
             
@@ -34,7 +33,17 @@ def extract_numbers_from_uploaded_file(uploaded_file):
             }
             
             response = requests.post(url, params=params, json=payload)
-            result = response.json()
+            
+            # فحص أمني: التأكد من أن رد السيرفر ناجح وليس صفحة خطأ تعطل التطبيق
+            if response.status_code != 200:
+                st.warning(f"⚠️ السيرفر مشغول أو الـ API Key غير مفعل بشكل صحيح (كود الحالة: {response.status_code}). يمكنك كتابة الأرقام يدوياً.")
+                return []
+                
+            try:
+                result = response.json()
+            except Exception:
+                st.warning("⚠️ واجهة جوجل لم ترجع بيانات مقروءة حالياً. يرجى إدخال الأرقام يدوياً في المربع أدناه.")
+                return []
             
             if 'error' in result:
                 st.error(f"🚫 خطأ واجهة جوجل: {result['error']['message']}")
@@ -46,11 +55,11 @@ def extract_numbers_from_uploaded_file(uploaded_file):
                 valid_numbers = [int(num) for num in all_numbers if 1 <= int(num) <= 90]
                 return sorted(list(set(valid_numbers)))
             else:
-                st.warning("⚠️ تنبيه: لم يرصد الماسح نصوصاً واضحة، يرجى مراجعة جودة الصورة.")
+                st.warning("⚠️ تنبيه: لم يتم التعرف على أرقام داخل الصورة تلقائياً، يرجى كتابتها يدوياً.")
                 return []
             
         except Exception as e:
-            st.error(f"⚠️ حدث خطأ تقني أثناء معالجة الصورة: {e}")
+            st.warning(f"⚠️ لم نتمكن من الاتصال بالماسح التلقائي: {e}. يمكنك الاعتماد على الإدخال اليدوي المباشر.")
             return []
     return []
 
