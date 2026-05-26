@@ -4,15 +4,15 @@ import requests
 import re
 
 # 1. إعدادات المظهر
-st.set_page_config(page_title="Genius 2 Hybrid", page_icon="🎯", layout="centered")
+st.set_page_config(page_title="Genius 2 Hybrid - Pure Victory", page_icon="🔮", layout="centered")
 
-st.title("🎯 خوارزمية Genius 2 الهجينة")
-st.write("تدمج بين التوزيع الدائري المستقر (توازن) ونظام التكتل (قنص) مع فحص ذكي لعدد الأرقام المقروءة.")
+st.title("🔮 خوارزمية ضربة المعلم - إصدار الاستراتيجية المكتسحة")
+st.write("النظام العشري (9 صناديق) | تمرير أعلى 4 صناديق مكررة | اعتماد الثانية النقية (الطازجة) وحظر الأولى النقية.")
 
-# جلب المفتاح السري
+# جلب المفتاح السري بالطريقة القديمة الشغالة مئة بالمئة عندك
 GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 
-# 2. دالة الماسح الضوئي
+# 2. دالة الماسح الضوئي القديمة الشغالة والناجحة عندك 100% بدون أي تعديل
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is not None:
         try:
@@ -45,8 +45,8 @@ def extract_numbers_from_uploaded_file(uploaded_file):
             return []
     return []
 
-# 3. واجهة المستخدم والتنبيهات الذكية للـ 50 رقم
-st.header("📸 خطوة 1: مسح السحبات")
+# 3. واجهة المستخدم والتنبيهات والتحقق التلقائي المتوافقة تماماً مع مشروعك
+st.header("📸 خطوة 1: مسح السحبات وتحليل الجبهات")
 
 img_file_1 = st.file_uploader("ارفع صورة السحبة الأولى:", type=["png", "jpg", "jpeg"], key="draw1")
 raw_nums_1 = extract_numbers_from_uploaded_file(img_file_1) if img_file_1 else []
@@ -58,7 +58,7 @@ if img_file_1:
     if len(current_nums_1) == 50:
         st.success(f"✅ قراءة مكتملة: تم رصد {len(current_nums_1)} رقماً.")
     else:
-        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_1)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً في المربع أعلاه.")
+        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_1)} رقماً فقط! المطلوب 50.")
 else:
     text_input_1 = ""
 
@@ -74,58 +74,100 @@ if img_file_2:
     if len(current_nums_2) == 50:
         st.success(f"✅ قراءة مكتملة: تم رصد {len(current_nums_2)} رقماً.")
     else:
-        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_2)} رقماً فقط! المطلوب 50. يرجى إضافة الرقم الناقص يدوياً في المربع أعلاه.")
+        st.warning(f"⚠️ انتبه: تم رصد {len(current_nums_2)} رقماً فقط! المطلوب 50.")
 else:
     text_input_2 = ""
 
 st.markdown("---")
 
-# 4. المعالجة الهجينة
-if st.button("🚀 توليد البطاقات الهجينة"):
-    d1 = [int(n) for n in re.findall(r'\b\d+\b', text_input_1)]
-    d2 = [int(n) for n in re.findall(r'\b\d+\b', text_input_2)]
+# 4. المعالجة المركزية وهندسة الوعاء بناءً على استراتيجيتك الجديدة المكتسحة
+if st.button("🚀 تشغيل الخوارزمية وتوليد البطاقات الستة"):
+    d1 = [int(n) for n in re.findall(r'\b\d+\b', text_input_1)] if text_input_1 else []
+    d2 = [int(n) for n in re.findall(r'\b\d+\b', text_input_2)] if text_input_2 else []
     
     if len(d1) > 0 and len(d2) > 0:
-        # حساب المجموعة المستهدفة
+        
+        # أ. تشريح الـ 4 مجاميع الصافية بدقة بالغة
         shared_numbers = set(d1).intersection(set(d2))
         all_possible = set(range(1, 91))
         hidden_numbers = all_possible.difference(set(d1).union(set(d2)))
         
-        boxes = {1: [n for n in shared_numbers if 1<=n<=15], 2: [n for n in shared_numbers if 16<=n<=30],
-                 3: [n for n in shared_numbers if 31<=n<=45], 4: [n for n in shared_numbers if 46<=n<=60],
-                 5: [n for n in shared_numbers if 61<=n<=75], 6: [n for n in shared_numbers if 76<=n<=90]}
+        purified_draw_2 = set(d2).difference(shared_numbers)
         
-        retained = []
-        for b_id in sorted(boxes.keys(), key=lambda k: len(boxes[k]))[3:]:
-            retained.extend(boxes[b_id])
+        # ب. التوزيع العشري على 9 صناديق تماثل أعمدة البنغو الحقيقية
+        boxes = {
+            1: [n for n in shared_numbers if 1 <= n <= 10],
+            2: [n for n in shared_numbers if 11 <= n <= 20],
+            3: [n for n in shared_numbers if 21 <= n <= 30],
+            4: [n for n in shared_numbers if 31 <= n <= 40],
+            5: [n for n in shared_numbers if 41 <= n <= 50],
+            6: [n for n in shared_numbers if 51 <= n <= 60],
+            7: [n for n in shared_numbers if 61 <= n <= 70],
+            8: [n for n in shared_numbers if 71 <= n <= 80],
+            9: [n for n in shared_numbers if 81 <= n <= 90]
+        }
+        
+        # ج. ترتيب الصناديق تنازلياً وتمرير أرقام أعلى 4 صناديق مزدحمة بالمشترك
+        sorted_boxes_by_len = sorted(boxes.keys(), key=lambda k: len(boxes[k]), reverse=True)
+        top_4_boxes_to_keep = sorted_boxes_by_len[:4]
+        
+        allowed_shared_numbers = set()
+        for b_id in top_4_boxes_to_keep:
+            allowed_shared_numbers.update(boxes[b_id])
             
-        target = sorted(list(set(d1).union(set(retained)).union(hidden_numbers)))
+        # د. بناء الوعاء الكلي (Target Pool): الغائب + الثانية النقية الطازجة + المشترك المختار
+        target = sorted(list(hidden_numbers.union(purified_draw_2).union(allowed_shared_numbers)))
         
-        # تجهيز البطاقات الستة
+        # هـ. تقسيم الوعاء الكلي إلى 3 مناطق واختيار عينات متساوية (Master Pool)
+        zones = [[n for n in target if 1<=n<=30], [n for n in target if 31<=n<=60], [n for n in target if 61<=n<=90]]
+        master_pool = []
+        
+        for z in zones:
+            z_sorted = sorted(z)
+            if len(z_sorted) > 10:
+                step = len(z_sorted) / 10.0
+                pool = [z_sorted[int(i * step)] for i in range(10)]
+            else:
+                pool = z_sorted
+            master_pool.extend(pool)
+            
+        working_pool = sorted(list(set(master_pool)))
+        
+        # و. التوزيع الدائري المحمي (Round-Robin) بالتساوي على 6 بطاقات (حد أقصى 5 أرقام)
         cards = [[] for _ in range(6)]
+        card_idx = 0
         
-        # 1. نظام التوازن (بطاقات 1-3)
-        balanced_pool = target.copy()
-        for i, num in enumerate(balanced_pool):
-            if i < 30: # توزيع أول 30 رقم بالتساوي
-                cards[i % 3].append(num)
+        for num in working_pool:
+            start_idx = card_idx
+            while len(cards[card_idx]) >= 5:
+                card_idx = (card_idx + 1) % 6
+                if card_idx == start_idx:
+                    break
+                    
+            if len(cards[card_idx]) < 5:
+                cards[card_idx].append(num)
+                card_idx = (card_idx + 1) % 6
                 
-        # 2. نظام القنص (بطاقات 4-6)
-        sniper_pool = [n for n in target if n not in [n for c in cards[:3] for n in c]]
-        sniper_pool.sort()
-        for i, num in enumerate(sniper_pool):
-            idx = 3 + (i // 5)
-            if idx < 6:
-                cards[idx].append(num)
-                
-        # ترتيب وعرض البطاقات
-        for i, c in enumerate(cards):
-            final_c = sorted(c)[:5]
-            st.info(f"{'⚖️ فريق التوازن' if i < 3 else '🎯 فريق القنص'} - بطاقة رقم {i+1}")
-            st.markdown(f"## ` {final_c} `")
+        cards = [sorted(c) for c in cards]
+        
+        # ز. عرض النتائج والعدادات الثلاثية المريحة للعين
+        st.success(f"🎯 تم توليد البطاقات وتطهير الوعاء بنجاح! عدد أرقام الوعاء المستهدف: {len(target)} رقماً.")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1: st.metric(label="📊 الغائب المار للوعاء", value=f"{len(hidden_numbers)} رقم")
+        with col2: st.metric(label="✨ الثانية النقية (طازجة)", value=f"{len(purified_draw_2)} رقم")
+        with col3: st.metric(label="🔥 المشترك الناجي عبر 4 صناديق", value=f"{len(allowed_shared_numbers)} رقم")
             
         st.markdown("---")
-        st.write("🎯 **المجموعة المستهدفة الكلية:**")
+        for i, c in enumerate(cards):
+            if c:
+                st.info(f"🎴 بطاقة رقم {i+1}")
+                st.markdown(f"## ` {c} `")
+            else:
+                st.warning(f"🎴 بطاقة رقم {i+1} فارغة لعدم تطابق شروط الفرز")
+            
+        st.markdown("---")
+        st.write("🎯 **المجموعة المستهدفة الكلية الصافية في الوعاء (Target Pool):**")
         st.code(" , ".join(map(str, target)))
     else:
-        st.warning("⚠️ أدخل الأرقام أولاً.")
+        st.warning("⚠️ أدخل أو امسح الأرقام أولاً لبدء الحساب.")
