@@ -15,15 +15,15 @@ GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "")
 if not GOOGLE_API_KEY:
     st.error("🔑 خطأ أمني: لم يتم العثور على GOOGLE_API_KEY في إعدادات Secrets الخاصة بـ Streamlit!")
 
-# 2. دالة الماسح الضوئي الذكي المحمية بالكامل من أخطاء الـ JSON والاتصال
+# 2. دالة الماسح الضوئي الذكي المحدثة بالكامل لحل مشكلة الـ 404
 def extract_numbers_from_uploaded_file(uploaded_file):
     if uploaded_file is not None and GOOGLE_API_KEY:
         try:
             bytes_data = uploaded_file.getvalue()
             encoded_image = base64.b64encode(bytes_data).decode('utf-8')
             
-            url = "https://googleapis.com"
-            params = {"key": GOOGLE_API_KEY}
+            # تم تحديث الرابط إلى المسار الشامل لضمان التوافق التام وحل مشكلة 404
+            url = f"https://googleapis.com{GOOGLE_API_KEY}"
             
             payload = {
                 "requests": [{
@@ -32,24 +32,21 @@ def extract_numbers_from_uploaded_file(uploaded_file):
                 }]
             }
             
-            response = requests.post(url, params=params, json=payload)
+            # إرسال الطلب مع تحديد الـ Headers لضمان استقبال البيانات كـ JSON بشكل سليم
+            headers = {"Content-Type": "application/json"}
+            response = requests.post(url, json=payload, headers=headers)
             
-            # فحص أمني: التأكد من أن رد السيرفر ناجح وليس صفحة خطأ تعطل التطبيق
             if response.status_code != 200:
-                st.warning(f"⚠️ السيرفر مشغول أو الـ API Key غير مفعل بشكل صحيح (كود الحالة: {response.status_code}). يمكنك كتابة الأرقام يدوياً.")
+                st.warning(f"⚠️ تنبيه: يرجى التأكد من تفعيل خدمة Cloud Vision API في حساب جوجل الخاص بك (كود الحالة: {response.status_code}). يمكنك كتابة الأرقام يدوياً.")
                 return []
                 
-            try:
-                result = response.json()
-            except Exception:
-                st.warning("⚠️ واجهة جوجل لم ترجع بيانات مقروءة حالياً. يرجى إدخال الأرقام يدوياً في المربع أدناه.")
-                return []
+            result = response.json()
             
             if 'error' in result:
                 st.error(f"🚫 خطأ واجهة جوجل: {result['error']['message']}")
                 return []
             
-            if 'responses' in result and result['responses'] and 'fullTextAnnotation' in result['responses'][0]:
+            if 'responses' in result and result['responses'] and 'fullTextAnnotation' in result['responses']:
                 extracted_text = result['responses'][0]['fullTextAnnotation']['text']
                 all_numbers = re.findall(r'\b\d+\b', extracted_text)
                 valid_numbers = [int(num) for num in all_numbers if 1 <= int(num) <= 90]
